@@ -17,7 +17,7 @@
 				"typeProperties": {
 					"source": {
 						"type": "AzureSqlSource",
-						"sqlReaderQuery": "SELECT * FROM ControlTable WHERE IsActive = 1 ORDER BY Priority ASC",
+						"sqlReaderQuery": "SELECT * FROM dbo.ControlTable WHERE IsActive = 1 ORDER BY Priority ASC",
 						"queryTimeout": "02:00:00",
 						"partitionOption": "None"
 					},
