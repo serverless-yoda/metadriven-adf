@@ -6,7 +6,7 @@
 		"type": "AzureSqlDatabase",
 		"typeProperties": {
 			"server": "sqlmetadrivenxyz.database.windows.net",
-			"database": "db_metadriven_dev_xyz",
+			"database": "@concat('db_metadriven_',pipeline().globalParameters.GBL_Environment,'_',pipeline().globalParameters.GBL_Suffix)",
 			"encrypt": "mandatory",
 			"trustServerCertificate": false,
 			"authenticationType": "SQL",
