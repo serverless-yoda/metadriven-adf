@@ -1,0 +1,16 @@
+{
+	"name": "DS_SQL_Generic",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_SQL_Dynamic",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "@dataset().SchemaName",
+			"table": "@dataset().TableName"
+		}
+	}
+}

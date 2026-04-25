@@ -1,0 +1,21 @@
+{
+	"name": "DS_ADLS_Generic",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_ADLS_Dynamic",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": "@dataset().FileName",
+				"folderPath": "@dataset().FolderPath",
+				"fileSystem": "@dataset().Container"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": []
+	}
+}
