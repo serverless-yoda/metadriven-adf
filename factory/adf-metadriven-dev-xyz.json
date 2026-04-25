@@ -1,0 +1,15 @@
+{
+	"name": "adf-metadriven-dev-xyz",
+	"properties": {
+		"trustModeClaimForMi": {
+			"value": "Enabled",
+			"editable": true
+		}
+	},
+	"location": "australiaeast",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "4edf7b88-a180-4480-aeac-830961303d14",
+		"tenantId": "68998cde-8670-454b-abe0-219eea2e1cd8"
+	}
+}
