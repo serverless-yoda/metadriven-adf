@@ -112,7 +112,8 @@
 									"referenceName": "DS_ADLS_Generic",
 									"type": "DatasetReference",
 									"parameters": {
-										"Container": "@item().TargetPath",
+										"Container": "bronze",
+										"FolderPath": "@item().TargetPath",
 										"FileName": "@concat(item().TableName, '.parquet')"
 									}
 								}
