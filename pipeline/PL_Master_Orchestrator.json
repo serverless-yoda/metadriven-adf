@@ -255,17 +255,49 @@
 												"typeProperties": {
 													"source": {
 														"type": "AzureSqlSource",
+														"sqlReaderQuery": "SELECT * FROM @{item().SourceSchema}.@{item().TableName}\nWHERE @{item().WatermarkColumn} > '@{item().LastWatermarkValue}",
 														"queryTimeout": "02:00:00",
 														"partitionOption": "None"
 													},
-													"enableStaging": false
+													"sink": {
+														"type": "ParquetSink",
+														"storeSettings": {
+															"type": "AzureBlobFSWriteSettings"
+														},
+														"formatSettings": {
+															"type": "ParquetWriteSettings"
+														}
+													},
+													"enableStaging": false,
+													"translator": {
+														"type": "TabularTranslator",
+														"typeConversion": true,
+														"typeConversionSettings": {
+															"allowDataTruncation": true,
+															"treatBooleanAsNumber": false
+														}
+													}
 												},
 												"inputs": [
 													{
-														"referenceName": "DS_SQL_Generic",
+														"referenceName": "DS_SQL_ControlTable",
+														"type": "DatasetReference"
+													}
+												],
+												"outputs": [
+													{
+														"referenceName": "DS_ADLS_Generic",
 														"type": "DatasetReference",
 														"parameters": {
-															"SchemaName": "SalesLT"
+															"Container": "bronze",
+															"FolderPath": {
+																"value": "@item().TargetSchema",
+																"type": "Expression"
+															},
+															"FileName": {
+																"value": "@concat(item().TableName,'.parquet')",
+																"type": "Expression"
+															}
 														}
 													}
 												]
