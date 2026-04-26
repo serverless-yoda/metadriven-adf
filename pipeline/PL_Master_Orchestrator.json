@@ -22,7 +22,7 @@
 						"partitionOption": "None"
 					},
 					"dataset": {
-						"referenceName": "DS_SQL_Generic",
+						"referenceName": "DS_SQL_ControlTable",
 						"type": "DatasetReference"
 					},
 					"firstRowOnly": false
