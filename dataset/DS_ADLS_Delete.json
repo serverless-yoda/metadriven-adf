@@ -1,5 +1,5 @@
 {
-	"name": "DS_ADLS_Generic",
+	"name": "DS_ADLS_Delete",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "LS_ADLS_Dynamic",
@@ -11,9 +11,6 @@
 			},
 			"FolderPath": {
 				"type": "string"
-			},
-			"FileName": {
-				"type": "string"
 			}
 		},
 		"folder": {
@@ -24,10 +21,6 @@
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobFSLocation",
-				"fileName": {
-					"value": "@dataset().FileName",
-					"type": "Expression"
-				},
 				"folderPath": {
 					"value": "@dataset().FolderPath",
 					"type": "Expression"
@@ -37,7 +30,7 @@
 					"type": "Expression"
 				}
 			},
-			"compressionCodec": "snappy"
+			"compressionCodec": null
 		},
 		"schema": []
 	}

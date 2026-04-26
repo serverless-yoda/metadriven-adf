@@ -5,6 +5,9 @@
 			"referenceName": "LS_SQL_Metadata",
 			"type": "LinkedServiceReference"
 		},
+		"folder": {
+			"name": "metadriven_adf"
+		},
 		"annotations": [],
 		"type": "AzureSqlTable",
 		"schema": [
