@@ -1,6 +1,16 @@
 {
 	"name": "adf-metadriven-dev-xyz",
 	"properties": {
+		"globalParameters": {
+			"GBL_Environment": {
+				"type": "string",
+				"value": "dev"
+			},
+			"GBL_Suffix": {
+				"type": "string",
+				"value": "xyz"
+			}
+		},
 		"trustModeClaimForMi": {
 			"value": "Enabled",
 			"editable": true
