@@ -48,71 +48,6 @@
 					"isSequential": true,
 					"activities": [
 						{
-							"name": "Copy data1",
-							"type": "Copy",
-							"dependsOn": [],
-							"policy": {
-								"timeout": "0.12:00:00",
-								"retry": 0,
-								"retryIntervalInSeconds": 30,
-								"secureOutput": false,
-								"secureInput": false
-							},
-							"userProperties": [],
-							"typeProperties": {
-								"source": {
-									"type": "AzureSqlSource",
-									"queryTimeout": "02:00:00",
-									"partitionOption": "None"
-								},
-								"sink": {
-									"type": "ParquetSink",
-									"storeSettings": {
-										"type": "AzureBlobFSWriteSettings"
-									},
-									"formatSettings": {
-										"type": "ParquetWriteSettings"
-									}
-								},
-								"enableStaging": false,
-								"translator": {
-									"type": "TabularTranslator",
-									"typeConversion": true,
-									"typeConversionSettings": {
-										"allowDataTruncation": true,
-										"treatBooleanAsNumber": false
-									}
-								}
-							},
-							"inputs": [
-								{
-									"referenceName": "DS_SQL_Generic",
-									"type": "DatasetReference",
-									"parameters": {
-										"SchemaName": {
-											"value": "@item().SourceSchema",
-											"type": "Expression"
-										},
-										"TableName": {
-											"value": "@item().TableName",
-											"type": "Expression"
-										}
-									}
-								}
-							],
-							"outputs": [
-								{
-									"referenceName": "DS_ADLS_Generic",
-									"type": "DatasetReference",
-									"parameters": {
-										"Container": "bronze",
-										"FolderPath": "@item().TargetPath",
-										"FileName": "@concat(item().TableName, '.parquet')"
-									}
-								}
-							]
-						},
-						{
 							"name": "Switch For Loading",
 							"type": "Switch",
 							"dependsOn": [],
@@ -255,7 +190,10 @@
 												"typeProperties": {
 													"source": {
 														"type": "AzureSqlSource",
-														"sqlReaderQuery": "SELECT * FROM @{item().SourceSchema}.@{item().TableName}\nWHERE @{item().WatermarkColumn} > '@{item().LastWatermarkValue}",
+														"sqlReaderQuery": {
+															"value": "@concat('SELECT * FROM ', item().SourceSchema, '.', item().TableName, \n ' WHERE ', item().WatermarkColumn, ' > ''', \n coalesce(item().LastWatermarkValue, '1900-01-01'), '''')",
+															"type": "Expression"
+														},
 														"queryTimeout": "02:00:00",
 														"partitionOption": "None"
 													},
