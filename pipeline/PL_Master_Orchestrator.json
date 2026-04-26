@@ -191,7 +191,7 @@
 													"source": {
 														"type": "AzureSqlSource",
 														"sqlReaderQuery": {
-															"value": "@concat('SELECT * FROM ', item().SourceSchema, '.', item().TableName, \n ' WHERE ', item().WatermarkColumn, ' > ''', \n coalesce(item().LastWatermarkValue, '1900-01-01'), '''')",
+															"value": "@concat('SELECT * FROM SalesLT.', item().TableName, ' WHERE ', item().WatermarkColumn, ' >= ''', coalesce(item().LastWatermarkValue, '1900-01-01'), '''')",
 															"type": "Expression"
 														},
 														"queryTimeout": "02:00:00",
