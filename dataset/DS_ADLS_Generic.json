@@ -16,6 +16,9 @@
 				"type": "string"
 			}
 		},
+		"folder": {
+			"name": "metadriven_adf"
+		},
 		"annotations": [],
 		"type": "Parquet",
 		"typeProperties": {
