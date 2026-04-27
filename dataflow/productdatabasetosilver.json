@@ -46,7 +46,7 @@
 				"          OrderID as integer,",
 				"          QuantityOrdered as integer,",
 				"          PriceEach as double,",
-				"          OrderDate as timestamp 'MM/dd/yy hh:mm'",
+				"          OrderDate as timestamp 'MM/dd/yy HH:mm'",
 				"     ),",
 				"     errors: true) ~> castDataTypes",
 				"sourcebronze filter(isInteger(OrderID)) ~> filterOrderId"
