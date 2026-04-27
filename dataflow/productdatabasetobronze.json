@@ -13,7 +13,7 @@
 						"referenceName": "LS_ADLS_CSV",
 						"type": "LinkedServiceReference"
 					},
-					"name": "productdatabasefromraw"
+					"name": "sourceraw"
 				}
 			],
 			"sinks": [
@@ -53,8 +53,8 @@
 				"     escapeChar: '\\\\',",
 				"     quoteChar: '\\\"',",
 				"     columnNamesAsHeader: true,",
-				"     wildcardPaths:['productdatabase/*.csv']) ~> productdatabasefromraw",
-				"productdatabasefromraw derive(LoadDate = currentDate()) ~> addLoadData",
+				"     wildcardPaths:['productdatabase/*.csv']) ~> sourceraw",
+				"sourceraw derive(LoadDate = currentDate()) ~> addLoadData",
 				"addLoadData select(mapColumn(",
 				"          OrderID = {Order ID},",
 				"          Product,",
