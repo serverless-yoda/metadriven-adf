@@ -15,7 +15,15 @@
 					"name": "sourcebronze"
 				}
 			],
-			"sinks": [],
+			"sinks": [
+				{
+					"linkedService": {
+						"referenceName": "LS_ADLS_CSV",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sinkToSilver"
+				}
+			],
 			"transformations": [
 				{
 					"name": "changeDataTypes"
@@ -47,7 +55,6 @@
 				"     ),",
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
-				"     limit: 100,",
 				"     ignoreNoFilesFound: false,",
 				"     format: 'parquet',",
 				"     fileSystem: 'bronze',",
@@ -123,7 +130,17 @@
 				"          LoadDate",
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> selectFinalColumns"
+				"     skipDuplicateMapOutputs: true) ~> selectFinalColumns",
+				"selectFinalColumns sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'parquet',",
+				"     fileSystem: 'silver',",
+				"     folderPath: 'productdatabase',",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> sinkToSilver"
 			]
 		}
 	}
