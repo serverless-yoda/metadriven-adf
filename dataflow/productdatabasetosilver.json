@@ -1,0 +1,147 @@
+{
+	"name": "productdatabasetosilver",
+	"properties": {
+		"folder": {
+			"name": "datamapping_medallion"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"linkedService": {
+						"referenceName": "LS_ADLS_CSV",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sourcebronze"
+				}
+			],
+			"sinks": [
+				{
+					"linkedService": {
+						"referenceName": "LS_ADLS_CSV",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sinkToSilver"
+				}
+			],
+			"transformations": [
+				{
+					"name": "changeDataTypes"
+				},
+				{
+					"name": "filterOrderId",
+					"description": "Some OrderID are non-numeric so i used isInteger()"
+				},
+				{
+					"name": "removeDuplicates"
+				},
+				{
+					"name": "addAddressPart"
+				},
+				{
+					"name": "selectFinalColumns"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          OrderID as string,",
+				"          Product as string,",
+				"          QuantityOrdered as string,",
+				"          PriceEach as string,",
+				"          OrderDate as string,",
+				"          PurchaseAddress as string,",
+				"          Filename as string,",
+				"          LoadDate as date",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'parquet',",
+				"     fileSystem: 'bronze',",
+				"     wildcardPaths:['productdatabase']) ~> sourcebronze",
+				"removeDuplicates cast(output(",
+				"          OrderID as integer,",
+				"          QuantityOrdered as integer,",
+				"          PriceEach as double,",
+				"          OrderDate as timestamp 'MM/dd/yy HH:mm'",
+				"     ),",
+				"     errors: true) ~> changeDataTypes",
+				"sourcebronze filter(isInteger(OrderID)) ~> filterOrderId",
+				"filterOrderId aggregate(groupBy(mycols = sha2(256,columns())),",
+				"     each(match(true()), $$ = first($$))) ~> removeDuplicates",
+				"changeDataTypes derive(PurchaseStreetAddress = trim(\r",
+				"    at(\r",
+				"        split(\r",
+				"            PurchaseAddress, ','\r",
+				"        )\r",
+				"        ,1\r",
+				"    )\r",
+				"),",
+				"          PurchaseCity = trim(\r",
+				"                at(\r",
+				"                    split(\r",
+				"                        PurchaseAddress, ', '\r",
+				"                    )\r",
+				"                    ,2\r",
+				"                )\r",
+				"            )\r",
+				",",
+				"          PurchaseState = trim(\r",
+				"at(\r",
+				"    split(\r",
+				"\r",
+				"         trim(\r",
+				"                at(\r",
+				"                    split(\r",
+				"                        PurchaseAddress, ', '\r",
+				"                    )\r",
+				"                    ,3\r",
+				"                )\r",
+				"            )\r",
+				"    ,' ')\r",
+				"  ,1)\r",
+				"),",
+				"          PurchaseZipCode = trim(\r",
+				"at(\r",
+				"    split(\r",
+				"\r",
+				"         trim(\r",
+				"                at(\r",
+				"                    split(\r",
+				"                        PurchaseAddress, ', '\r",
+				"                    )\r",
+				"                    ,3\r",
+				"                )\r",
+				"            )\r",
+				"    ,' ')\r",
+				"  ,2)\r",
+				")) ~> addAddressPart",
+				"addAddressPart select(mapColumn(",
+				"          OrderID,",
+				"          Product,",
+				"          QuantityOrdered,",
+				"          PriceEach,",
+				"          OrderDate,",
+				"          PurchaseStreetAddress,",
+				"          PurchaseCity,",
+				"          PurchaseState,",
+				"          PurchaseZipCode,",
+				"          Filename,",
+				"          LoadDate",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectFinalColumns",
+				"selectFinalColumns sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'parquet',",
+				"     fileSystem: 'silver',",
+				"     folderPath: 'productdatabase',",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> sinkToSilver"
+			]
+		}
+	}
+}

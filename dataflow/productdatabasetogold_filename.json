@@ -1,0 +1,78 @@
+{
+	"name": "productdatabasetogold_filename",
+	"properties": {
+		"folder": {
+			"name": "datamapping_medallion"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"linkedService": {
+						"referenceName": "LS_ADLS_CSV",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sourcesilver"
+				}
+			],
+			"sinks": [
+				{
+					"linkedService": {
+						"referenceName": "LS_ADLS_CSV",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sinkDimension"
+				}
+			],
+			"transformations": [
+				{
+					"name": "createDimension",
+					"description": "Using Aggregate data by 'Product' producing columns 'PriceEach'"
+				},
+				{
+					"name": "surrogateKeyId",
+					"description": "using SurrogateKey to create ID"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          OrderID as integer,",
+				"          Product as string,",
+				"          QuantityOrdered as integer,",
+				"          PriceEach as double,",
+				"          OrderDate as timestamp,",
+				"          PurchaseStreetAddress as string,",
+				"          PurchaseCity as string,",
+				"          PurchaseState as string,",
+				"          PurchaseZipCode as string,",
+				"          Filename as string,",
+				"          LoadDate as date",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'parquet',",
+				"     fileSystem: 'silver',",
+				"     wildcardPaths:['productdatabase']) ~> sourcesilver",
+				"sourcesilver aggregate(groupBy(Filename),",
+				"     LoadDate = last(LoadDate)) ~> createDimension",
+				"createDimension keyGenerate(output(FileNameID as long),",
+				"     startAt: 1L,",
+				"     stepValue: 1L) ~> surrogateKeyId",
+				"surrogateKeyId sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'parquet',",
+				"     fileSystem: 'gold',",
+				"     folderPath: 'productdatabase/filenames',",
+				"     truncate: true,",
+				"     partitionFileNames:['filenames.parquet'],",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     partitionBy('hash', 1)) ~> sinkDimension"
+			]
+		}
+	}
+}
