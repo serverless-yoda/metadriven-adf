@@ -21,7 +21,11 @@
 					"name": "castDataTypes"
 				},
 				{
-					"name": "filterOrderId"
+					"name": "filterOrderId",
+					"description": "Some OrderID are non-numeric so i used isInteger()"
+				},
+				{
+					"name": "removeDuplicates"
 				}
 			],
 			"scriptLines": [
@@ -42,14 +46,16 @@
 				"     format: 'parquet',",
 				"     fileSystem: 'bronze',",
 				"     wildcardPaths:['productdatabase']) ~> sourcebronze",
-				"filterOrderId cast(output(",
+				"removeDuplicates cast(output(",
 				"          OrderID as integer,",
 				"          QuantityOrdered as integer,",
 				"          PriceEach as double,",
 				"          OrderDate as timestamp 'MM/dd/yy HH:mm'",
 				"     ),",
 				"     errors: true) ~> castDataTypes",
-				"sourcebronze filter(isInteger(OrderID)) ~> filterOrderId"
+				"sourcebronze filter(isInteger(OrderID)) ~> filterOrderId",
+				"filterOrderId aggregate(groupBy(mycols = sha2(256,columns())),",
+				"     each(match(true()), $$ = first($$))) ~> removeDuplicates"
 			]
 		}
 	}
