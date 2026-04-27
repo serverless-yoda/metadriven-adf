@@ -1,5 +1,5 @@
 {
-	"name": "PL_ProductDatabase_To_Gold_Product",
+	"name": "PL_ProductDatabase_To_Gold_dimensions",
 	"properties": {
 		"activities": [
 			{
@@ -16,7 +16,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataflow": {
-						"referenceName": "productdatabasetogold_product",
+						"referenceName": "productdatabasetogold_dimensions",
 						"type": "DataFlowReference"
 					},
 					"compute": {

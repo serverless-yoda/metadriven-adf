@@ -1,5 +1,5 @@
 {
-	"name": "productdatabasetogold_product",
+	"name": "productdatabasetogold_dimensions",
 	"properties": {
 		"folder": {
 			"name": "datamapping_medallion"
@@ -21,17 +21,17 @@
 						"referenceName": "LS_ADLS_CSV",
 						"type": "LinkedServiceReference"
 					},
-					"name": "productdimension"
+					"name": "sinkDimension"
 				}
 			],
 			"transformations": [
 				{
-					"name": "createProductDimension",
+					"name": "createDimension",
 					"description": "Using Aggregate data by 'Product' producing columns 'PriceEach'"
 				},
 				{
-					"name": "surrogateKeyProductId",
-					"description": "using SurrogateKey"
+					"name": "surrogateKeyId",
+					"description": "using SurrogateKey to create ID"
 				}
 			],
 			"scriptLines": [
@@ -56,11 +56,11 @@
 				"     fileSystem: 'silver',",
 				"     wildcardPaths:['productdatabase']) ~> sourcesilver",
 				"sourcesilver aggregate(groupBy(Product),",
-				"     PriceEach = last(PriceEach)) ~> createProductDimension",
-				"createProductDimension keyGenerate(output(ProductId as long),",
+				"     PriceEach = last(PriceEach)) ~> createDimension",
+				"createDimension keyGenerate(output(ProductId as long),",
 				"     startAt: 1L,",
-				"     stepValue: 1L) ~> surrogateKeyProductId",
-				"surrogateKeyProductId sink(allowSchemaDrift: true,",
+				"     stepValue: 1L) ~> surrogateKeyId",
+				"surrogateKeyId sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     format: 'parquet',",
 				"     fileSystem: 'gold',",
@@ -69,7 +69,7 @@
 				"     preCommands: [],",
 				"     postCommands: [],",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> productdimension"
+				"     skipDuplicateMapOutputs: true) ~> sinkDimension"
 			]
 		}
 	}
