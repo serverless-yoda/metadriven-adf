@@ -1,0 +1,82 @@
+{
+	"name": "datamapping_medallion",
+	"properties": {
+		"description": "this is a use case that create a medallion architecture using data mapping flow",
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"linkedService": {
+						"referenceName": "LS_ADLS_CSV",
+						"type": "LinkedServiceReference"
+					},
+					"name": "productdatabasetoraw"
+				}
+			],
+			"sinks": [
+				{
+					"linkedService": {
+						"referenceName": "LS_ADLS_CSV",
+						"type": "LinkedServiceReference"
+					},
+					"name": "productdatabasetobronze"
+				}
+			],
+			"transformations": [
+				{
+					"name": "addLoadData"
+				},
+				{
+					"name": "renameColumns"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          {Order ID} as string,",
+				"          Product as string,",
+				"          {Quantity Ordered} as string,",
+				"          {Price Each} as string,",
+				"          {Order Date} as string,",
+				"          {Purchase Address} as string",
+				"     ),",
+				"     useSchema: false,",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     limit: 100,",
+				"     ignoreNoFilesFound: false,",
+				"     rowUrlColumn: 'Filename',",
+				"     format: 'delimited',",
+				"     fileSystem: 'raw',",
+				"     columnDelimiter: ',',",
+				"     escapeChar: '\\\\',",
+				"     quoteChar: '\\\"',",
+				"     columnNamesAsHeader: true,",
+				"     wildcardPaths:['productdatabase/*.csv']) ~> productdatabasetoraw",
+				"productdatabasetoraw derive(LoadDate = currentDate()) ~> addLoadData",
+				"addLoadData select(mapColumn(",
+				"          OrderID = {Order ID},",
+				"          Product,",
+				"          QuantityOrdered = {Quantity Ordered},",
+				"          PriceEach = {Price Each},",
+				"          OrderDate = {Order Date},",
+				"          PurchaseAddress = {Purchase Address},",
+				"          Filename,",
+				"          LoadDate",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> renameColumns",
+				"renameColumns sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'parquet',",
+				"     fileSystem: 'bronze',",
+				"     folderPath: 'productdatabase/',",
+				"     truncate: true,",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> productdatabasetobronze"
+			]
+		}
+	}
+}
