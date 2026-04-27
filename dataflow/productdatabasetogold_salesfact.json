@@ -1,0 +1,62 @@
+{
+	"name": "productdatabasetogold_salesfact",
+	"properties": {
+		"folder": {
+			"name": "datamapping_medallion"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"linkedService": {
+						"referenceName": "LS_ADLS_CSV",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sourceSilver"
+				},
+				{
+					"linkedService": {
+						"referenceName": "LS_ADLS_CSV",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sinkFilenames"
+				}
+			],
+			"sinks": [],
+			"transformations": [],
+			"scriptLines": [
+				"source(output(",
+				"          OrderID as integer,",
+				"          Product as string,",
+				"          QuantityOrdered as integer,",
+				"          PriceEach as double,",
+				"          OrderDate as timestamp,",
+				"          PurchaseStreetAddress as string,",
+				"          PurchaseCity as string,",
+				"          PurchaseState as string,",
+				"          PurchaseZipCode as string,",
+				"          Filename as string,",
+				"          LoadDate as date",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'parquet',",
+				"     fileSystem: 'silver',",
+				"     wildcardPaths:['productdatabase']) ~> sourceSilver",
+				"source(output(",
+				"          Filename as string,",
+				"          LoadDate as date,",
+				"          FileNameID as long",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     limit: 100,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'parquet',",
+				"     fileSystem: 'gold',",
+				"     wildcardPaths:['productdatabase/filenames']) ~> sinkFilenames"
+			]
+		}
+	}
+}
