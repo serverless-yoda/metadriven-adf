@@ -27,10 +27,30 @@
 						"type": "LinkedServiceReference"
 					},
 					"name": "sinkProducts"
+				},
+				{
+					"linkedService": {
+						"referenceName": "LS_ADLS_CSV",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sinkAddress"
 				}
 			],
 			"sinks": [],
-			"transformations": [],
+			"transformations": [
+				{
+					"name": "joinFilenames"
+				},
+				{
+					"name": "joinProducts"
+				},
+				{
+					"name": "joinAddress"
+				},
+				{
+					"name": "selectSalesFact"
+				}
+			],
 			"scriptLines": [
 				"source(output(",
 				"          OrderID as integer,",
@@ -75,7 +95,50 @@
 				"     ignoreNoFilesFound: false,",
 				"     format: 'parquet',",
 				"     fileSystem: 'gold',",
-				"     wildcardPaths:['productdatabase/product']) ~> sinkProducts"
+				"     wildcardPaths:['productdatabase/product']) ~> sinkProducts",
+				"source(output(",
+				"          PurchaseStreetAddress as string,",
+				"          PurchaseCity as string,",
+				"          PurchaseState as string,",
+				"          PurchaseZipCode as string,",
+				"          PurchaseAddressID as long",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     limit: 100,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'parquet',",
+				"     fileSystem: 'gold',",
+				"     wildcardPaths:['productdatabase/purchaseaddress']) ~> sinkAddress",
+				"sourceSilver, sinkFilenames join(sourceSilver@Filename == sinkFilenames@Filename",
+				"     && sourceSilver@LoadDate == sinkFilenames@LoadDate,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> joinFilenames",
+				"joinFilenames, sinkProducts join(sourceSilver@Product == sinkProducts@Product,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> joinProducts",
+				"joinProducts, sinkAddress join(sourceSilver@PurchaseStreetAddress == sinkAddress@PurchaseStreetAddress",
+				"     && sourceSilver@PurchaseCity == sinkAddress@PurchaseCity",
+				"     && sourceSilver@PurchaseState == sinkAddress@PurchaseState",
+				"     && sourceSilver@PurchaseZipCode == sinkAddress@PurchaseZipCode,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> joinAddress",
+				"joinAddress select(mapColumn(",
+				"          OrderID,",
+				"          ProductId,",
+				"          PurchaseAddressID,",
+				"          QuantityOrdered,",
+				"          OrderDate,",
+				"          FileNameID",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectSalesFact"
 			]
 		}
 	}
