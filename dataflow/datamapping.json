@@ -1,7 +1,10 @@
 {
-	"name": "datamapping_medallion",
+	"name": "datamapping",
 	"properties": {
 		"description": "this is a use case that create a medallion architecture using data mapping flow",
+		"folder": {
+			"name": "datamapping_medallion"
+		},
 		"type": "MappingDataFlow",
 		"typeProperties": {
 			"sources": [
