@@ -29,14 +29,7 @@
 			{
 				"name": "toGold_filenames",
 				"type": "ExecuteDataFlow",
-				"dependsOn": [
-					{
-						"activity": "toGold_product",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
+				"dependsOn": [],
 				"policy": {
 					"timeout": "0.12:00:00",
 					"retry": 0,
@@ -60,14 +53,7 @@
 			{
 				"name": "toGold_addresses",
 				"type": "ExecuteDataFlow",
-				"dependsOn": [
-					{
-						"activity": "toGold_filenames",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
+				"dependsOn": [],
 				"policy": {
 					"timeout": "0.12:00:00",
 					"retry": 0,
@@ -94,6 +80,18 @@
 				"dependsOn": [
 					{
 						"activity": "toGold_addresses",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "toGold_filenames",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "toGold_product",
 						"dependencyConditions": [
 							"Succeeded"
 						]
