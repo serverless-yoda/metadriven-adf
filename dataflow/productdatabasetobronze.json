@@ -1,5 +1,5 @@
 {
-	"name": "datamapping",
+	"name": "productdatabasetobronze",
 	"properties": {
 		"description": "this is a use case that create a medallion architecture using data mapping flow",
 		"folder": {
@@ -13,7 +13,7 @@
 						"referenceName": "LS_ADLS_CSV",
 						"type": "LinkedServiceReference"
 					},
-					"name": "productdatabasetoraw"
+					"name": "productdatabasefromraw"
 				}
 			],
 			"sinks": [
@@ -54,8 +54,8 @@
 				"     escapeChar: '\\\\',",
 				"     quoteChar: '\\\"',",
 				"     columnNamesAsHeader: true,",
-				"     wildcardPaths:['productdatabase/*.csv']) ~> productdatabasetoraw",
-				"productdatabasetoraw derive(LoadDate = currentDate()) ~> addLoadData",
+				"     wildcardPaths:['productdatabase/*.csv']) ~> productdatabasefromraw",
+				"productdatabasefromraw derive(LoadDate = currentDate()) ~> addLoadData",
 				"addLoadData select(mapColumn(",
 				"          OrderID = {Order ID},",
 				"          Product,",
