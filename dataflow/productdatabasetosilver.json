@@ -1,0 +1,56 @@
+{
+	"name": "productdatabasetosilver",
+	"properties": {
+		"folder": {
+			"name": "datamapping_medallion"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"linkedService": {
+						"referenceName": "LS_ADLS_CSV",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sourcebronze"
+				}
+			],
+			"sinks": [],
+			"transformations": [
+				{
+					"name": "castDataTypes"
+				},
+				{
+					"name": "filterOrderId"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          OrderID as string,",
+				"          Product as string,",
+				"          QuantityOrdered as string,",
+				"          PriceEach as string,",
+				"          OrderDate as string,",
+				"          PurchaseAddress as string,",
+				"          Filename as string,",
+				"          LoadDate as date",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     limit: 100,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'parquet',",
+				"     fileSystem: 'bronze',",
+				"     wildcardPaths:['productdatabase']) ~> sourcebronze",
+				"filterOrderId cast(output(",
+				"          OrderID as integer,",
+				"          QuantityOrdered as integer,",
+				"          PriceEach as double,",
+				"          OrderDate as timestamp 'MM/dd/yy hh:mm'",
+				"     ),",
+				"     errors: true) ~> castDataTypes",
+				"sourcebronze filter(isInteger(OrderID)) ~> filterOrderId"
+			]
+		}
+	}
+}
