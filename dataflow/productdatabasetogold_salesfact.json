@@ -20,6 +20,13 @@
 						"type": "LinkedServiceReference"
 					},
 					"name": "sinkFilenames"
+				},
+				{
+					"linkedService": {
+						"referenceName": "LS_ADLS_CSV",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sinkProducts"
 				}
 			],
 			"sinks": [],
@@ -40,6 +47,7 @@
 				"     ),",
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
+				"     limit: 100,",
 				"     ignoreNoFilesFound: false,",
 				"     format: 'parquet',",
 				"     fileSystem: 'silver',",
@@ -55,7 +63,19 @@
 				"     ignoreNoFilesFound: false,",
 				"     format: 'parquet',",
 				"     fileSystem: 'gold',",
-				"     wildcardPaths:['productdatabase/filenames']) ~> sinkFilenames"
+				"     wildcardPaths:['productdatabase/filenames']) ~> sinkFilenames",
+				"source(output(",
+				"          Product as string,",
+				"          PriceEach as double,",
+				"          ProductId as long",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     limit: 100,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'parquet',",
+				"     fileSystem: 'gold',",
+				"     wildcardPaths:['productdatabase/product']) ~> sinkProducts"
 			]
 		}
 	}
