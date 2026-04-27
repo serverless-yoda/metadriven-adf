@@ -36,7 +36,15 @@
 					"name": "sinkAddress"
 				}
 			],
-			"sinks": [],
+			"sinks": [
+				{
+					"linkedService": {
+						"referenceName": "LS_ADLS_CSV",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sinkSalesFact"
+				}
+			],
 			"transformations": [
 				{
 					"name": "joinFilenames"
@@ -138,7 +146,19 @@
 				"          FileNameID",
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> selectSalesFact"
+				"     skipDuplicateMapOutputs: true) ~> selectSalesFact",
+				"selectSalesFact sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'parquet',",
+				"     fileSystem: 'gold',",
+				"     folderPath: 'productdatabase/salesfact',",
+				"     partitionFileNames:['salesfact.parquet'],",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     partitionBy('hash', 1)) ~> sinkSalesFact"
 			]
 		}
 	}
