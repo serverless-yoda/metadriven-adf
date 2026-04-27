@@ -65,11 +65,14 @@
 				"     format: 'parquet',",
 				"     fileSystem: 'gold',",
 				"     folderPath: 'productdatabase/product',",
+				"     truncate: true,",
+				"     partitionFileNames:['product.parquet'],",
 				"     umask: 0022,",
 				"     preCommands: [],",
 				"     postCommands: [],",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> sinkDimension"
+				"     skipDuplicateMapOutputs: true,",
+				"     partitionBy('hash', 1)) ~> sinkDimension"
 			]
 		}
 	}
