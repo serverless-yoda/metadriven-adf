@@ -9,6 +9,10 @@
 			"GBL_Suffix": {
 				"type": "string",
 				"value": "xyz"
+			},
+			"GBL_StorageAccount": {
+				"type": "string",
+				"value": "metadrivendevxyz"
 			}
 		},
 		"trustModeClaimForMi": {
