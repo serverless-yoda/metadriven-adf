@@ -24,7 +24,53 @@
 					"dataset": {
 						"referenceName": "DS_SQL_ControlTable",
 						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "ForEachTable",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "LKP_GetMetadata",
+						"dependencyConditions": [
+							"Succeeded"
+						]
 					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('LKP_GetMetadata').output.value",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "SwitchLoadingPattern",
+							"type": "Switch",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"on": {
+									"value": "@item().LoadingPattern",
+									"type": "Expression"
+								},
+								"cases": [
+									{
+										"value": "Incremental"
+									},
+									{
+										"value": "Merge"
+									},
+									{
+										"value": "FullLoad"
+									}
+								]
+							}
+						}
+					]
 				}
 			}
 		],
