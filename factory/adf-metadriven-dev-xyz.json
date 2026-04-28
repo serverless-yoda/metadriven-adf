@@ -13,6 +13,10 @@
 			"GBL_StorageAccount": {
 				"type": "string",
 				"value": "metadrivendevxyz"
+			},
+			"GBL_SQLServer": {
+				"type": "string",
+				"value": "sqlmetadrivenxyz"
 			}
 		},
 		"trustModeClaimForMi": {
