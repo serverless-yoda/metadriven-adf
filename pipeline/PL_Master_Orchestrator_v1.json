@@ -1,0 +1,9 @@
+{
+	"name": "PL_Master_Orchestrator_v1",
+	"properties": {
+		"folder": {
+			"name": "metadriven_adf_v1"
+		},
+		"annotations": []
+	}
+}
