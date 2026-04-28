@@ -1,0 +1,36 @@
+{
+	"name": "DS_SQL_Source_v1",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_SQL_Dynamic_v1",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"SQLServerName": "sqlmetadrivenxyz"
+			}
+		},
+		"parameters": {
+			"Schema": {
+				"type": "string"
+			},
+			"Table": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "metadriven_adf_v1"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": {
+				"value": "@dataset().Schema",
+				"type": "Expression"
+			},
+			"table": {
+				"value": "@dataset().Table",
+				"type": "Expression"
+			}
+		}
+	}
+}

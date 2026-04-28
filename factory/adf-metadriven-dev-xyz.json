@@ -9,6 +9,14 @@
 			"GBL_Suffix": {
 				"type": "string",
 				"value": "xyz"
+			},
+			"GBL_StorageAccount": {
+				"type": "string",
+				"value": "adlsmetadrivendevxyz"
+			},
+			"GBL_SQLServer": {
+				"type": "string",
+				"value": "sqlmetadrivenxyz"
 			}
 		},
 		"trustModeClaimForMi": {

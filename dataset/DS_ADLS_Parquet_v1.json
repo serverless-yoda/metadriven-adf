@@ -1,0 +1,47 @@
+{
+	"name": "DS_ADLS_Parquet_v1",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_ADLS_Dynamic_v1",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"StorageAccountName": "adlsmetadrivendevxyz"
+			}
+		},
+		"parameters": {
+			"Container": {
+				"type": "string"
+			},
+			"Directory": {
+				"type": "string"
+			},
+			"Filename": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "metadriven_adf_v1"
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": {
+					"value": "@dataset().Filename",
+					"type": "Expression"
+				},
+				"folderPath": {
+					"value": "@dataset().Directory",
+					"type": "Expression"
+				},
+				"fileSystem": {
+					"value": "@dataset().Container",
+					"type": "Expression"
+				}
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": []
+	}
+}
