@@ -12,7 +12,7 @@
 			},
 			"GBL_StorageAccount": {
 				"type": "string",
-				"value": "metadrivendevxyz"
+				"value": "adlsmetadrivendevxyz"
 			},
 			"GBL_SQLServer": {
 				"type": "string",
