@@ -62,7 +62,7 @@
 										"value": "Incremental",
 										"activities": [
 											{
-												"name": "Copy data1",
+												"name": "Incremental Copy data",
 												"type": "Copy",
 												"dependsOn": [],
 												"policy": {
@@ -74,8 +74,58 @@
 												},
 												"userProperties": [],
 												"typeProperties": {
-													"enableStaging": false
-												}
+													"source": {
+														"type": "AzureSqlSource",
+														"sqlReaderQuery": "@concat(\n    'SELECT * FROM [', \n    item().SourceSchema, \n    '].[', \n    item().TableName, \n    '] WHERE ', \n    item().WatermarkColumn, \n    ' >= ''', \n    coalesce(string(item().LastWatermarkValue), '1900-01-01'), \n    ''''\n)",
+														"queryTimeout": "02:00:00",
+														"partitionOption": "None"
+													},
+													"sink": {
+														"type": "ParquetSink",
+														"storeSettings": {
+															"type": "AzureBlobFSWriteSettings"
+														},
+														"formatSettings": {
+															"type": "ParquetWriteSettings"
+														}
+													},
+													"enableStaging": false,
+													"translator": {
+														"type": "TabularTranslator",
+														"typeConversion": true,
+														"typeConversionSettings": {
+															"allowDataTruncation": true,
+															"treatBooleanAsNumber": false
+														}
+													}
+												},
+												"inputs": [
+													{
+														"referenceName": "DS_SQL_Source_v1",
+														"type": "DatasetReference",
+														"parameters": {
+															"Schema": "item().SourceSchema",
+															"Table": "item().TableName"
+														}
+													}
+												],
+												"outputs": [
+													{
+														"referenceName": "DS_ADLS_Parquet_v1",
+														"type": "DatasetReference",
+														"parameters": {
+															"Container": "bronze",
+															"Directory": {
+																"value": "@item().TargetPath",
+																"type": "Expression"
+															},
+															"Filename": {
+																"value": "@concat(item().TableName,'_', pipeline().RunId,'.parquet')",
+																"type": "Expression"
+															}
+														}
+													}
+												]
 											}
 										]
 									},
