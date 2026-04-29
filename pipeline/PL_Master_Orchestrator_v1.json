@@ -76,7 +76,10 @@
 												"typeProperties": {
 													"source": {
 														"type": "AzureSqlSource",
-														"sqlReaderQuery": "@concat(\n    'SELECT * FROM [', \n    item().SourceSchema, \n    '].[', \n    item().TableName, \n    '] WHERE ', \n    item().WatermarkColumn, \n    ' >= ''', \n    coalesce(string(item().LastWatermarkValue), '1900-01-01'), \n    ''''\n)",
+														"sqlReaderQuery": {
+															"value": "@concat(\n    'SELECT * FROM [', \n    item().SourceSchema, \n    '].[', \n    item().TableName, \n    '] WHERE ', \n    item().WatermarkColumn, \n    ' >= ''', \n    coalesce(string(item().LastWatermarkValue), '1900-01-01'), \n    ''''\n)",
+															"type": "Expression"
+														},
 														"queryTimeout": "02:00:00",
 														"partitionOption": "None"
 													},
@@ -128,12 +131,6 @@
 												]
 											}
 										]
-									},
-									{
-										"value": "Merge"
-									},
-									{
-										"value": "FullLoad"
 									}
 								]
 							}
