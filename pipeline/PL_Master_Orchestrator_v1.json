@@ -178,7 +178,10 @@
 														"referenceName": "DS_SQL_Source_v1",
 														"type": "DatasetReference",
 														"parameters": {
-															"Schema": "@item",
+															"Schema": {
+																"value": "@item().SourceSchema",
+																"type": "Expression"
+															},
 															"Table": "@item().TableName"
 														}
 													}
