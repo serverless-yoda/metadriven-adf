@@ -136,7 +136,7 @@
 										"value": "FullLoad",
 										"activities": [
 											{
-												"name": "Copy data FullLoad",
+												"name": "FullLoad Copy data",
 												"type": "Copy",
 												"dependsOn": [],
 												"policy": {
@@ -148,8 +148,52 @@
 												},
 												"userProperties": [],
 												"typeProperties": {
-													"enableStaging": false
-												}
+													"source": {
+														"type": "AzureSqlSource",
+														"sqlReaderQuery": "SELECT * FROM @{item().SourceSchema}.@{item().TableName}",
+														"queryTimeout": "02:00:00",
+														"partitionOption": "None"
+													},
+													"sink": {
+														"type": "ParquetSink",
+														"storeSettings": {
+															"type": "AzureBlobFSWriteSettings"
+														},
+														"formatSettings": {
+															"type": "ParquetWriteSettings"
+														}
+													},
+													"enableStaging": false,
+													"translator": {
+														"type": "TabularTranslator",
+														"typeConversion": true,
+														"typeConversionSettings": {
+															"allowDataTruncation": true,
+															"treatBooleanAsNumber": false
+														}
+													}
+												},
+												"inputs": [
+													{
+														"referenceName": "DS_SQL_Source_v1",
+														"type": "DatasetReference",
+														"parameters": {
+															"Schema": "@item",
+															"Table": "@item().TableName"
+														}
+													}
+												],
+												"outputs": [
+													{
+														"referenceName": "DS_ADLS_Parquet_v1",
+														"type": "DatasetReference",
+														"parameters": {
+															"Container": "bronze",
+															"Directory": "@item().TargetPath",
+															"Filename": "@concat(item().TableName, pipeline().RunId,'.parquet')"
+														}
+													}
+												]
 											}
 										]
 									}
