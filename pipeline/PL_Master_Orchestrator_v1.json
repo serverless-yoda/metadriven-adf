@@ -190,7 +190,10 @@
 														"parameters": {
 															"Container": "bronze",
 															"Directory": "@item().TargetPath",
-															"Filename": "@concat(item().TableName, pipeline().RunId,'.parquet')"
+															"Filename": {
+																"value": "@concat(item().TableName,'_', pipeline().RunId,'.parquet')",
+																"type": "Expression"
+															}
 														}
 													}
 												]
