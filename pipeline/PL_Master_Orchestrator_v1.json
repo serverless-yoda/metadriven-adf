@@ -150,7 +150,10 @@
 												"typeProperties": {
 													"source": {
 														"type": "AzureSqlSource",
-														"sqlReaderQuery": "SELECT * FROM @{item().SourceSchema}.@{item().TableName}",
+														"sqlReaderQuery": {
+															"value": "SELECT * FROM @{item().SourceSchema}.@{item().TableName}",
+															"type": "Expression"
+														},
 														"queryTimeout": "02:00:00",
 														"partitionOption": "None"
 													},
@@ -202,6 +205,9 @@
 												]
 											}
 										]
+									},
+									{
+										"value": "Merge"
 									}
 								]
 							}

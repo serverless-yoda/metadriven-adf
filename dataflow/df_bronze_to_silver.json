@@ -1,0 +1,30 @@
+{
+	"name": "df_bronze_to_silver",
+	"properties": {
+		"folder": {
+			"name": "metadriven_adf_v1"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"linkedService": {
+						"referenceName": "LS_ADLS_Dynamic_v1",
+						"type": "LinkedServiceReference"
+					},
+					"name": "source1"
+				}
+			],
+			"sinks": [],
+			"transformations": [],
+			"scriptLines": [
+				"source(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'parquet',",
+				"     fileSystem: 'bronze',",
+				"     wildcardPaths:['concat($TargetPath, \\'/*.parquet\\')']) ~> source1"
+			]
+		}
+	}
+}
