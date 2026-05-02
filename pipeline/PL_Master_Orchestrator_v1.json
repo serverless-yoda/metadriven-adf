@@ -207,7 +207,75 @@
 										]
 									},
 									{
-										"value": "Merge"
+										"value": "Merge",
+										"activities": [
+											{
+												"name": "Merge Copy data",
+												"type": "Copy",
+												"dependsOn": [],
+												"policy": {
+													"timeout": "0.12:00:00",
+													"retry": 0,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"source": {
+														"type": "AzureSqlSource",
+														"sqlReaderQuery": "@concat(\n    'SELECT * FROM [', \n    item().SourceSchema, \n    '].[', \n    item().TableName, \n    '] WHERE ', \n    item().WatermarkColumn, \n    ' >= ''', \n    coalesce(string(item().LastWatermarkValue), '1900-01-01'), \n    ''''\n)",
+														"queryTimeout": "02:00:00",
+														"partitionOption": "None"
+													},
+													"sink": {
+														"type": "ParquetSink",
+														"storeSettings": {
+															"type": "AzureBlobFSWriteSettings"
+														},
+														"formatSettings": {
+															"type": "ParquetWriteSettings"
+														}
+													},
+													"enableStaging": false,
+													"translator": {
+														"type": "TabularTranslator",
+														"typeConversion": true,
+														"typeConversionSettings": {
+															"allowDataTruncation": true,
+															"treatBooleanAsNumber": false
+														}
+													}
+												},
+												"inputs": [
+													{
+														"referenceName": "DS_SQL_Source_v1",
+														"type": "DatasetReference",
+														"parameters": {
+															"Schema": "@item().SourceSchema",
+															"Table": {
+																"value": "@item().TableName",
+																"type": "Expression"
+															}
+														}
+													}
+												],
+												"outputs": [
+													{
+														"referenceName": "DS_ADLS_Parquet_v1",
+														"type": "DatasetReference",
+														"parameters": {
+															"Container": "bronze",
+															"Directory": "@item().TargetPath",
+															"Filename": {
+																"value": "@concat(\nitem().TableName, pipeline().RunId,'.parquet'\n    )",
+																"type": "Expression"
+															}
+														}
+													}
+												]
+											}
+										]
 									}
 								]
 							}
