@@ -12,7 +12,14 @@
 						"referenceName": "LS_ADLS_Dynamic_v1",
 						"type": "LinkedServiceReference"
 					},
-					"name": "source1"
+					"name": "bronzesource"
+				},
+				{
+					"linkedService": {
+						"referenceName": "LS_ADLS_Dynamic_v1",
+						"type": "LinkedServiceReference"
+					},
+					"name": "silversource"
 				}
 			],
 			"sinks": [],
@@ -23,7 +30,13 @@
 				"     ignoreNoFilesFound: false,",
 				"     format: 'parquet',",
 				"     fileSystem: 'bronze',",
-				"     wildcardPaths:['concat($TargetPath, \\'/*.parquet\\')']) ~> source1"
+				"     wildcardPaths:['concat($TargetPath, \\'/*.parquet\\')']) ~> bronzesource",
+				"source(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'parquet',",
+				"     fileSystem: 'silver',",
+				"     wildcardPaths:[(concat($SilverPath, '/*.parquet'))]) ~> silversource"
 			]
 		}
 	}
