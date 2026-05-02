@@ -253,7 +253,10 @@
 														"type": "DatasetReference",
 														"parameters": {
 															"Schema": "@item().SourceSchema",
-															"Table": "@item().TargetTable"
+															"Table": {
+																"value": "@item().TableName",
+																"type": "Expression"
+															}
 														}
 													}
 												],
