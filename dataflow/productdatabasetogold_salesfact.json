@@ -8,40 +8,20 @@
 		"typeProperties": {
 			"sources": [
 				{
-					"linkedService": {
-						"referenceName": "LS_ADLS_CSV",
-						"type": "LinkedServiceReference"
-					},
 					"name": "sourceSilver"
 				},
 				{
-					"linkedService": {
-						"referenceName": "LS_ADLS_CSV",
-						"type": "LinkedServiceReference"
-					},
 					"name": "sinkFilenames"
 				},
 				{
-					"linkedService": {
-						"referenceName": "LS_ADLS_CSV",
-						"type": "LinkedServiceReference"
-					},
 					"name": "sinkProducts"
 				},
 				{
-					"linkedService": {
-						"referenceName": "LS_ADLS_CSV",
-						"type": "LinkedServiceReference"
-					},
 					"name": "sinkAddress"
 				}
 			],
 			"sinks": [
 				{
-					"linkedService": {
-						"referenceName": "LS_ADLS_CSV",
-						"type": "LinkedServiceReference"
-					},
 					"name": "sinkSalesFact"
 				}
 			],
@@ -76,10 +56,8 @@
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     limit: 100,",
-				"     ignoreNoFilesFound: false,",
-				"     format: 'parquet',",
-				"     fileSystem: 'silver',",
-				"     wildcardPaths:['productdatabase']) ~> sourceSilver",
+				"     wildcardPaths:['productdatabase'],",
+				"     fileSystem: 'silver') ~> sourceSilver",
 				"source(output(",
 				"          Filename as string,",
 				"          LoadDate as date,",
@@ -88,10 +66,8 @@
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     limit: 100,",
-				"     ignoreNoFilesFound: false,",
-				"     format: 'parquet',",
-				"     fileSystem: 'gold',",
-				"     wildcardPaths:['productdatabase/filenames']) ~> sinkFilenames",
+				"     wildcardPaths:['productdatabase/filenames'],",
+				"     fileSystem: 'gold') ~> sinkFilenames",
 				"source(output(",
 				"          Product as string,",
 				"          PriceEach as double,",
@@ -100,10 +76,8 @@
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     limit: 100,",
-				"     ignoreNoFilesFound: false,",
-				"     format: 'parquet',",
-				"     fileSystem: 'gold',",
-				"     wildcardPaths:['productdatabase/product']) ~> sinkProducts",
+				"     wildcardPaths:['productdatabase/product'],",
+				"     fileSystem: 'gold') ~> sinkProducts",
 				"source(output(",
 				"          PurchaseStreetAddress as string,",
 				"          PurchaseCity as string,",
@@ -114,10 +88,8 @@
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     limit: 100,",
-				"     ignoreNoFilesFound: false,",
-				"     format: 'parquet',",
-				"     fileSystem: 'gold',",
-				"     wildcardPaths:['productdatabase/purchaseaddress']) ~> sinkAddress",
+				"     wildcardPaths:['productdatabase/purchaseaddress'],",
+				"     fileSystem: 'gold') ~> sinkAddress",
 				"sourceSilver, sinkFilenames join(sourceSilver@Filename == sinkFilenames@Filename",
 				"     && sourceSilver@LoadDate == sinkFilenames@LoadDate,",
 				"     joinType:'left',",
@@ -149,16 +121,15 @@
 				"     skipDuplicateMapOutputs: true) ~> selectSalesFact",
 				"selectSalesFact sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
+				"     partitionFileNames:['salesfact.parquet'],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     partitionBy('hash', 1),",
 				"     format: 'parquet',",
 				"     fileSystem: 'gold',",
 				"     folderPath: 'productdatabase/salesfact',",
-				"     partitionFileNames:['salesfact.parquet'],",
-				"     umask: 0022,",
 				"     preCommands: [],",
-				"     postCommands: [],",
-				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true,",
-				"     partitionBy('hash', 1)) ~> sinkSalesFact"
+				"     postCommands: []) ~> sinkSalesFact"
 			]
 		}
 	}

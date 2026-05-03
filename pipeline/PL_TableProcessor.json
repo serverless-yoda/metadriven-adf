@@ -1,0 +1,670 @@
+{
+	"name": "PL_TableProcessor",
+	"properties": {
+		"activities": [
+			{
+				"name": "Init_Variables",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "vStatus",
+					"value": {
+						"value": "InProgress",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Switch_LoadPattern",
+				"type": "Switch",
+				"dependsOn": [
+					{
+						"activity": "Init_Variables",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"cases": [
+						{
+							"value": "FullLoad",
+							"activities": [
+								{
+									"name": "Bronze_FullLoad",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "AzureSqlSource",
+											"partitionOption": "None"
+										},
+										"sink": {
+											"type": "ParquetSink",
+											"storeSettings": {
+												"type": "AzureBlobFSWriteSettings"
+											},
+											"formatSettings": {
+												"type": "ParquetWriteSettings"
+											}
+										},
+										"enableStaging": false
+									},
+									"inputs": [
+										{
+											"referenceName": "DS_SourceDynamic",
+											"type": "DatasetReference",
+											"parameters": {
+												"schema": "@pipeline().parameters.pSourceSchema",
+												"table": "@pipeline().parameters.pTableName"
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "DS_TargetBronze",
+											"type": "DatasetReference",
+											"parameters": {
+												"folderPath": "@pipeline().parameters.pTargetPath",
+												"fileName": "@{pipeline().parameters.pTableName}.parquet"
+											}
+										}
+									]
+								},
+								{
+									"name": "Silver_FullLoad",
+									"type": "Copy",
+									"dependsOn": [
+										{
+											"activity": "Bronze_FullLoad",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "ParquetSource",
+											"storeSettings": {
+												"type": "AzureBlobFSReadSettings",
+												"recursive": true
+											},
+											"formatSettings": {
+												"type": "ParquetReadSettings"
+											}
+										},
+										"sink": {
+											"type": "ParquetSink",
+											"storeSettings": {
+												"type": "AzureBlobFSWriteSettings"
+											},
+											"formatSettings": {
+												"type": "ParquetWriteSettings"
+											}
+										},
+										"enableStaging": false
+									},
+									"inputs": [
+										{
+											"referenceName": "DS_TargetBronze",
+											"type": "DatasetReference",
+											"parameters": {
+												"folderPath": "@pipeline().parameters.pTargetPath"
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "DS_TargetSilver",
+											"type": "DatasetReference",
+											"parameters": {
+												"folderPath": "@pipeline().parameters.pSilverPath",
+												"fileName": "@{pipeline().parameters.pTableName}.parquet"
+											}
+										}
+									]
+								},
+								{
+									"name": "Gold_FullLoad",
+									"type": "Copy",
+									"dependsOn": [
+										{
+											"activity": "Silver_FullLoad",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"sink": {
+											"type": "ParquetSink",
+											"storeSettings": {
+												"type": "AzureBlobFSWriteSettings"
+											},
+											"formatSettings": {
+												"type": "ParquetWriteSettings"
+											}
+										},
+										"enableStaging": false
+									},
+									"inputs": [
+										{
+											"referenceName": "DS_TargetSilver",
+											"type": "DatasetReference",
+											"parameters": {
+												"folderPath": "@pipeline().parameters.pSilverPath"
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "DS_TargetGold",
+											"type": "DatasetReference",
+											"parameters": {
+												"folderPath": "@pipeline().parameters.pGoldPath",
+												"fileName": "@{pipeline().parameters.pTableName}.parquet"
+											}
+										}
+									]
+								}
+							]
+						},
+						{
+							"value": "Incremental",
+							"activities": [
+								{
+									"name": "Bronze_Incremental",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "AzureSqlSource",
+											"sqlReaderQuery": {
+												"value": "@if(empty(pipeline().parameters.pWatermarkColumn), concat('SELECT * FROM ', pipeline().parameters.pSourceSchema, '.', pipeline().parameters.pTableName), concat('SELECT * FROM ', pipeline().parameters.pSourceSchema, '.', pipeline().parameters.pTableName, ' WHERE ', pipeline().parameters.pWatermarkColumn, ' > ''', coalesce(pipeline().parameters.pLastWatermarkValue, '1900-01-01'), ''''))",
+												"type": "Expression"
+											},
+											"partitionOption": "None"
+										},
+										"sink": {
+											"type": "ParquetSink",
+											"storeSettings": {
+												"type": "AzureBlobFSWriteSettings"
+											},
+											"formatSettings": {
+												"type": "ParquetWriteSettings"
+											}
+										},
+										"enableStaging": false
+									},
+									"inputs": [
+										{
+											"referenceName": "DS_SourceDynamic",
+											"type": "DatasetReference",
+											"parameters": {
+												"schema": "@pipeline().parameters.pSourceSchema",
+												"table": "@pipeline().parameters.pTableName"
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "DS_TargetBronze",
+											"type": "DatasetReference",
+											"parameters": {
+												"folderPath": "@{pipeline().parameters.pTargetPath}/delta/",
+												"fileName": "@{pipeline().parameters.pRunId}.parquet"
+											}
+										}
+									]
+								},
+								{
+									"name": "Silver_Incremental",
+									"type": "Copy",
+									"dependsOn": [
+										{
+											"activity": "Bronze_Incremental",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"enableStaging": false
+									},
+									"inputs": [
+										{
+											"referenceName": "DS_TargetBronze",
+											"type": "DatasetReference",
+											"parameters": {
+												"folderPath": "@{pipeline().parameters.pTargetPath}/delta/"
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "DS_TargetSilver",
+											"type": "DatasetReference",
+											"parameters": {
+												"folderPath": "@{pipeline().parameters.pSilverPath}/delta/",
+												"fileName": "@{pipeline().parameters.pRunId}.parquet"
+											}
+										}
+									]
+								},
+								{
+									"name": "Gold_Incremental",
+									"type": "Copy",
+									"dependsOn": [
+										{
+											"activity": "Silver_Incremental",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"enableStaging": false
+									},
+									"inputs": [
+										{
+											"referenceName": "DS_TargetSilver",
+											"type": "DatasetReference",
+											"parameters": {
+												"folderPath": "@{pipeline().parameters.pSilverPath}/delta/"
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "DS_TargetGold",
+											"type": "DatasetReference",
+											"parameters": {
+												"folderPath": "@{pipeline().parameters.pGoldPath}/delta/",
+												"fileName": "@{pipeline().parameters.pRunId}.parquet"
+											}
+										}
+									]
+								}
+							]
+						},
+						{
+							"value": "Merge",
+							"activities": [
+								{
+									"name": "Bronze_Merge",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "AzureSqlSource",
+											"sqlReaderQuery": {
+												"value": "@concat('SELECT *, GETDATE() LoadDateTime, ''', pipeline().parameters.pRunId, ''' LoadRunId FROM ', pipeline().parameters.pSourceSchema, '.', pipeline().parameters.pTableName)",
+												"type": "Expression"
+											},
+											"partitionOption": "None"
+										},
+										"sink": {
+											"type": "ParquetSink"
+										},
+										"enableStaging": false
+									},
+									"inputs": [
+										{
+											"referenceName": "DS_SourceDynamic",
+											"type": "DatasetReference",
+											"parameters": {
+												"schema": "@pipeline().parameters.pSourceSchema",
+												"table": "@pipeline().parameters.pTableName"
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "DS_TargetBronze",
+											"type": "DatasetReference",
+											"parameters": {
+												"folderPath": "@{pipeline().parameters.pTargetPath}/staging/",
+												"fileName": "@{pipeline().parameters.pRunId}.parquet"
+											}
+										}
+									]
+								},
+								{
+									"name": "Silver_Merge",
+									"type": "Copy",
+									"dependsOn": [
+										{
+											"activity": "Bronze_Merge",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"enableStaging": false
+									},
+									"inputs": [
+										{
+											"referenceName": "DS_TargetBronze",
+											"type": "DatasetReference",
+											"parameters": {
+												"folderPath": "@{pipeline().parameters.pTargetPath}/staging/"
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "DS_TargetSilver",
+											"type": "DatasetReference",
+											"parameters": {
+												"folderPath": "@{pipeline().parameters.pSilverPath}/staging/",
+												"fileName": "@{pipeline().parameters.pRunId}.parquet"
+											}
+										}
+									]
+								},
+								{
+									"name": "Gold_Merge",
+									"type": "Copy",
+									"dependsOn": [
+										{
+											"activity": "Silver_Merge",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"enableStaging": false
+									},
+									"inputs": [
+										{
+											"referenceName": "DS_TargetSilver",
+											"type": "DatasetReference",
+											"parameters": {
+												"folderPath": "@{pipeline().parameters.pSilverPath}/staging/"
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "DS_TargetGold",
+											"type": "DatasetReference",
+											"parameters": {
+												"folderPath": "@{pipeline().parameters.pGoldPath}/staging/",
+												"fileName": "@{pipeline().parameters.pRunId}.parquet"
+											}
+										}
+									]
+								}
+							]
+						}
+					],
+					"defaultActivities": [
+						{
+							"name": "Set_Failure",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "vStatus",
+								"value": {
+									"value": "@concat('Unknown pattern: ', pipeline().parameters.pLoadingPattern)",
+									"type": "Expression"
+								}
+							}
+						}
+					],
+					"expression": {
+						"value": "@pipeline().parameters.pLoadingPattern",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Set_RowCounts",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Switch_LoadPattern",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "vRowsRead",
+					"value": {
+						"value": "@coalesce(activity('Switch_LoadPattern').output.dataWritten, 0)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Set_Success",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Set_RowCounts",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "vStatus",
+					"value": "Success"
+				}
+			},
+			{
+				"name": "Set_Watermark",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Set_Success",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "vNewWatermark",
+					"value": {
+						"value": "@utcnow()",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "SP_UpdateAudit",
+				"type": "AzureSqlStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "Set_Watermark",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[dbo].[sp_UpdateWatermarkAndLog]",
+					"storedProcedureParameters": {
+						"TableName": {
+							"value": "@pipeline().parameters.pTableName",
+							"type": "String"
+						},
+						"RunID": {
+							"value": "@pipeline().parameters.pRunId",
+							"type": "String"
+						},
+						"NewWatermark": {
+							"value": "@variables('vNewWatermark')",
+							"type": "String"
+						},
+						"RowsRead": {
+							"value": "@variables('vRowsRead')",
+							"type": "Int"
+						},
+						"RowsWritten": {
+							"value": "@variables('vRowsRead')",
+							"type": "Int"
+						},
+						"Status": {
+							"value": "@variables('vStatus')",
+							"type": "String"
+						},
+						"ErrorMessage": {
+							"value": "",
+							"type": "String"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"pTableName": {
+				"type": "string"
+			},
+			"pSourceSchema": {
+				"type": "string"
+			},
+			"pLoadingPattern": {
+				"type": "string"
+			},
+			"pWatermarkColumn": {
+				"type": "string"
+			},
+			"pPrimaryKey": {
+				"type": "string"
+			},
+			"pSourcePath": {
+				"type": "string"
+			},
+			"pTargetPath": {
+				"type": "string"
+			},
+			"pSilverPath": {
+				"type": "string"
+			},
+			"pGoldPath": {
+				"type": "string"
+			},
+			"pLastWatermarkValue": {
+				"type": "string"
+			},
+			"pRunId": {
+				"type": "string"
+			}
+		},
+		"variables": {
+			"vStatus": {
+				"type": "String"
+			},
+			"vRowsRead": {
+				"type": "Int"
+			},
+			"vRowsWritten": {
+				"type": "Int"
+			},
+			"vNewWatermark": {
+				"type": "String"
+			}
+		},
+		"annotations": []
+	}
+}

@@ -1,0 +1,23 @@
+{
+	"name": "DS_ControlTable",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_ControlDB",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"SQLServerName": "sqlmetadrivenxyz"
+			}
+		},
+		"parameters": {
+			"tableName": {
+				"type": "String"
+			}
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "ControlTable"
+		}
+	}
+}

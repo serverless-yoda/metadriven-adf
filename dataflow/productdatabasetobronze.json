@@ -9,19 +9,11 @@
 		"typeProperties": {
 			"sources": [
 				{
-					"linkedService": {
-						"referenceName": "LS_ADLS_CSV",
-						"type": "LinkedServiceReference"
-					},
 					"name": "sourceraw"
 				}
 			],
 			"sinks": [
 				{
-					"linkedService": {
-						"referenceName": "LS_ADLS_CSV",
-						"type": "LinkedServiceReference"
-					},
 					"name": "productdatabasetobronze"
 				}
 			],
@@ -42,18 +34,15 @@
 				"          {Order Date} as string,",
 				"          {Purchase Address} as string",
 				"     ),",
-				"     useSchema: false,",
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
-				"     ignoreNoFilesFound: false,",
 				"     rowUrlColumn: 'Filename',",
-				"     format: 'delimited',",
+				"     wildcardPaths:['productdatabase/*.csv'],",
 				"     fileSystem: 'raw',",
 				"     columnDelimiter: ',',",
 				"     escapeChar: '\\\\',",
 				"     quoteChar: '\\\"',",
-				"     columnNamesAsHeader: true,",
-				"     wildcardPaths:['productdatabase/*.csv']) ~> sourceraw",
+				"     columnNamesAsHeader: true) ~> sourceraw",
 				"sourceraw derive(LoadDate = currentDate()) ~> addLoadData",
 				"addLoadData select(mapColumn(",
 				"          OrderID = {Order ID},",
@@ -69,15 +58,14 @@
 				"     skipDuplicateMapOutputs: true) ~> renameColumns",
 				"renameColumns sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
+				"     truncate: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
 				"     format: 'parquet',",
 				"     fileSystem: 'bronze',",
 				"     folderPath: 'productdatabase',",
-				"     truncate: true,",
-				"     umask: 0022,",
 				"     preCommands: [],",
-				"     postCommands: [],",
-				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> productdatabasetobronze"
+				"     postCommands: []) ~> productdatabasetobronze"
 			]
 		}
 	}
