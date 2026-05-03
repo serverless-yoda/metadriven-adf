@@ -29,6 +29,11 @@
 				}
 			],
 			"scriptLines": [
+				"parameters{",
+				"     TableName as string,",
+				"     LastWatermarkValue as string,",
+				"     TargetPath as string",
+				"}",
 				"source(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     ignoreNoFilesFound: false,",
