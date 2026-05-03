@@ -1,0 +1,141 @@
+{
+	"name": "PL_TableProcessor",
+	"properties": {
+		"activities": [
+			{
+				"name": "Switch_LoadPattern",
+				"type": "Switch",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"cases": [
+						{
+							"value": "FullLoad",
+							"activities": [
+								{
+									"name": "DF_FullLoad",
+									"type": "ExecuteDataFlow",
+									"dependsOn": [],
+									"policy": {
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"dataflow": {
+											"referenceName": "DF_GenericLoad",
+											"type": "DataFlowReference"
+										},
+										"compute": {
+											"coreCount": 8,
+											"computeType": "General"
+										},
+										"traceLevel": "Fine",
+										"parameters": {
+											"pLoadType": "FullLoad",
+											"pSourcePath": "@pipeline().parameters.pSourcePath",
+											"pTargetPath": "@pipeline().parameters.pTargetPath"
+										}
+									}
+								}
+							]
+						}
+					],
+					"expression": {
+						"value": "@pipeline().parameters.pLoadingPattern",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "SP_UpdateWatermark",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [],
+				"policy": {
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "sp_UpdateWatermarkAndLog",
+					"storedProcedureParameters": {
+						"TableName": {
+							"value": {
+								"value": "@pipeline().parameters.pTableName",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"RunID": {
+							"value": {
+								"value": "@pipeline().parameters.pRunId",
+								"type": "Expression"
+							},
+							"type": "String"
+						}
+					}
+				}
+			}
+		],
+		"parameters": {
+			"pTableName": {
+				"type": "String"
+			},
+			"pSourceSchema": {
+				"type": "String"
+			},
+			"pSourceType": {
+				"type": "String"
+			},
+			"pLoadingPattern": {
+				"type": "String"
+			},
+			"pWatermarkColumn": {
+				"type": "String"
+			},
+			"pPrimaryKey": {
+				"type": "String"
+			},
+			"pSourcePath": {
+				"type": "String"
+			},
+			"pTargetPath": {
+				"type": "String"
+			},
+			"pSilverPath": {
+				"type": "String"
+			},
+			"pGoldPath": {
+				"type": "String"
+			},
+			"pLastWatermarkValue": {
+				"type": "String"
+			},
+			"pRunId": {
+				"type": "String"
+			}
+		},
+		"variables": {
+			"vStatus": {
+				"type": "String"
+			},
+			"vErrorMessage": {
+				"type": "String"
+			},
+			"vRowsRead": {
+				"type": "Int"
+			},
+			"vRowsWritten": {
+				"type": "Int"
+			},
+			"vNewWatermark": {
+				"type": "String"
+			}
+		},
+		"annotations": []
+	}
+}
