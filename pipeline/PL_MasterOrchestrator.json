@@ -21,7 +21,10 @@
 					},
 					"dataset": {
 						"referenceName": "DS_ControlTable",
-						"type": "DatasetReference"
+						"type": "DatasetReference",
+						"parameters": {
+							"tableName": "dbo.ControlTable"
+						}
 					},
 					"firstRowOnly": false
 				}
