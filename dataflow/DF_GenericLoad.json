@@ -1,0 +1,30 @@
+{
+	"name": "DF_GenericLoad",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "DS_SourceDynamic",
+						"type": "DatasetReference"
+					},
+					"name": "source1",
+					"description": ""
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "DS_TargetBronze",
+						"type": "DatasetReference"
+					},
+					"name": "sink1",
+					"description": ""
+				}
+			],
+			"transformations": [],
+			"script": "source(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tisolationLevel: 'READ_UNCOMMITTED',\n\tformat: 'table') ~> source1\nsource1 sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tformat: 'parquet',\n\tumask: 0022,\n\tpreCommands: [],\n\tpostCommands: []) ~> sink1"
+		}
+	}
+}
