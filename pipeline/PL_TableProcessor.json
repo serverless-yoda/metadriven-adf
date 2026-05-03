@@ -13,8 +13,8 @@
 							"value": "FullLoad",
 							"activities": [
 								{
-									"name": "DF_FullLoad",
-									"type": "ExecuteDataFlow",
+									"name": "Copy_FullLoad_Bronze",
+									"type": "Copy",
 									"dependsOn": [],
 									"policy": {
 										"retry": 0,
@@ -24,23 +24,184 @@
 									},
 									"userProperties": [],
 									"typeProperties": {
-										"dataflow": {
-											"referenceName": "DF_GenericLoad",
-											"type": "DataFlowReference"
+										"source": {
+											"type": "AzureSqlSource",
+											"queryTimeout": "02:00:00",
+											"partitionOption": "None"
 										},
-										"compute": {
-											"coreCount": 8,
-											"computeType": "General"
+										"sink": {
+											"type": "ParquetSink",
+											"storeSettings": {
+												"type": "AzureBlobFSWriteSettings",
+												"copyBehavior": "PreserveHierarchy"
+											},
+											"formatSettings": {
+												"type": "ParquetWriteSettings"
+											}
 										},
-										"traceLevel": "Fine",
-										"parameters": {
-											"pLoadType": "FullLoad",
-											"pSourcePath": "@pipeline().parameters.pSourcePath",
-											"pTargetPath": "@pipeline().parameters.pTargetPath"
+										"enableStaging": false,
+										"translator": {
+											"type": "TabularTranslator",
+											"typeConversion": true,
+											"typeConversionSettings": {
+												"allowDataTruncation": true,
+												"treatBooleanAsNumber": false
+											}
 										}
-									}
+									},
+									"inputs": [
+										{
+											"referenceName": "DS_SourceDynamic",
+											"type": "DatasetReference",
+											"parameters": {
+												"schema": "@pipeline().parameters.pSourceSchema",
+												"table": "@pipeline().parameters.pTableName"
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "DS_TargetBronze",
+											"type": "DatasetReference",
+											"parameters": {
+												"folderPath": "@{pipeline().parameters.pTargetPath}",
+												"fileName": "@{pipeline().parameters.pTableName}.parquet"
+											}
+										}
+									]
 								}
 							]
+						},
+						{
+							"value": "Incremental",
+							"activities": [
+								{
+									"name": "Copy_Incremental_Bronze",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "AzureSqlSource",
+											"sqlReaderQuery": {
+												"value": "@concat('SELECT * FROM ', pipeline().parameters.pSourceSchema, '.', pipeline().parameters.pTableName, ' WHERE ', pipeline().parameters.pWatermarkColumn, ' > ''', coalesce(pipeline().parameters.pLastWatermarkValue, '1900-01-01'), '''')",
+												"type": "Expression"
+											},
+											"partitionOption": "None"
+										},
+										"sink": {
+											"type": "ParquetSink",
+											"storeSettings": {
+												"type": "AzureBlobFSWriteSettings",
+												"copyBehavior": "FlattenHierarchy"
+											}
+										},
+										"enableStaging": false
+									},
+									"inputs": [
+										{
+											"referenceName": "DS_SourceDynamic",
+											"type": "DatasetReference",
+											"parameters": {
+												"schema": "@pipeline().parameters.pSourceSchema",
+												"table": "@pipeline().parameters.pTableName"
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "DS_TargetBronze",
+											"type": "DatasetReference",
+											"parameters": {
+												"folderPath": "@{pipeline().parameters.pTargetPath}/delta/",
+												"fileName": "@{pipeline().parameters.pRunId}.parquet"
+											}
+										}
+									]
+								}
+							]
+						},
+						{
+							"value": "Merge",
+							"activities": [
+								{
+									"name": "Copy_Merge_Staging",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "AzureSqlSource",
+											"sqlReaderQuery": {
+												"value": "@concat('SELECT *, GETDATE() as LoadDateTime, ''', pipeline().parameters.pRunId, ''' as RunId FROM ', pipeline().parameters.pSourceSchema, '.', pipeline().parameters.pTableName, ' WHERE ', pipeline().parameters.pWatermarkColumn, ' > ''', coalesce(pipeline().parameters.pLastWatermarkValue, '1900-01-01'), '''')",
+												"type": "Expression"
+											},
+											"partitionOption": "None"
+										},
+										"sink": {
+											"type": "ParquetSink",
+											"storeSettings": {
+												"type": "AzureBlobFSWriteSettings"
+											},
+											"formatSettings": {
+												"type": "ParquetWriteSettings"
+											}
+										},
+										"enableStaging": false
+									},
+									"inputs": [
+										{
+											"referenceName": "DS_SourceDynamic",
+											"type": "DatasetReference",
+											"parameters": {
+												"schema": "@pipeline().parameters.pSourceSchema",
+												"table": "@pipeline().parameters.pTableName"
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "DS_TargetBronze",
+											"type": "DatasetReference",
+											"parameters": {
+												"folderPath": "@{pipeline().parameters.pTargetPath}/staging/",
+												"fileName": "@{pipeline().parameters.pRunId}.parquet"
+											}
+										}
+									]
+								}
+							]
+						}
+					],
+					"defaultActivities": [
+						{
+							"name": "Set_Failure_NoPattern",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "vStatus",
+								"value": {
+									"value": "@concat('Unknown loading pattern: ', pipeline().parameters.pLoadingPattern)",
+									"type": "Expression"
+								}
+							}
 						}
 					],
 					"expression": {
@@ -50,11 +211,59 @@
 				}
 			},
 			{
-				"name": "SP_UpdateWatermark",
-				"type": "SqlServerStoredProcedure",
+				"name": "Set_RowCounts",
+				"type": "SetVariable",
 				"dependsOn": [
 					{
 						"activity": "Switch_LoadPattern",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "vRowsRead",
+					"value": {
+						"value": "@activity('Switch_LoadPattern').output.dataWritten",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Set_SuccessWatermark",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Set_RowCounts",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "vNewWatermark",
+					"value": {
+						"value": "@utcnow()",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "SP_UpdateWatermarkAndLog",
+				"type": "AzureSqlStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "Set_SuccessWatermark",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -68,20 +277,34 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"storedProcedureName": "sp_UpdateWatermarkAndLog",
+					"storedProcedureName": "[dbo].[sp_UpdateWatermarkAndLog]",
 					"storedProcedureParameters": {
 						"TableName": {
-							"value": {
-								"value": "@pipeline().parameters.pTableName",
-								"type": "Expression"
-							},
+							"value": "@pipeline().parameters.pTableName",
 							"type": "String"
 						},
 						"RunID": {
-							"value": {
-								"value": "@pipeline().parameters.pRunId",
-								"type": "Expression"
-							},
+							"value": "@pipeline().parameters.pRunId",
+							"type": "String"
+						},
+						"NewWatermark": {
+							"value": "@variables('vNewWatermark')",
+							"type": "String"
+						},
+						"RowsRead": {
+							"value": "@variables('vRowsRead')",
+							"type": "Int"
+						},
+						"RowsWritten": {
+							"value": "@variables('vRowsWritten')",
+							"type": "Int"
+						},
+						"Status": {
+							"value": "@variables('vStatus')",
+							"type": "String"
+						},
+						"ErrorMessage": {
+							"value": "@variables('vErrorMessage')",
 							"type": "String"
 						}
 					}
@@ -93,9 +316,6 @@
 				"type": "String"
 			},
 			"pSourceSchema": {
-				"type": "String"
-			},
-			"pSourceType": {
 				"type": "String"
 			},
 			"pLoadingPattern": {
@@ -128,16 +348,19 @@
 		},
 		"variables": {
 			"vStatus": {
-				"type": "String"
+				"type": "String",
+				"defaultValue": "InProgress"
 			},
 			"vErrorMessage": {
 				"type": "String"
 			},
 			"vRowsRead": {
-				"type": "Int"
+				"type": "Int",
+				"defaultValue": "0"
 			},
 			"vRowsWritten": {
-				"type": "Int"
+				"type": "Int",
+				"defaultValue": "0"
 			},
 			"vNewWatermark": {
 				"type": "String"
