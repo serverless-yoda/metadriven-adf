@@ -1,0 +1,111 @@
+{
+	"name": "PL_MasterOrchestrator",
+	"properties": {
+		"activities": [
+			{
+				"name": "Lookup_ActiveTables",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT * FROM ControlTable WHERE IsActive = 1 ORDER BY Priority ASC",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "DS_ControlTable",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "ForEach_Tables",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Lookup_ActiveTables",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Lookup_ActiveTables').output.value",
+						"type": "Expression"
+					},
+					"batchCount": 3,
+					"activities": [
+						{
+							"name": "Execute_TableProcessor",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "PL_TableProcessor",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"pTableName": {
+										"value": "@item().TableName",
+										"type": "Expression"
+									},
+									"pSourceSchema": {
+										"value": "@item().SourceSchema",
+										"type": "Expression"
+									},
+									"pLoadingPattern": {
+										"value": "@item().LoadingPattern",
+										"type": "Expression"
+									},
+									"pSourcePath": {
+										"value": "@item().SourcePath",
+										"type": "Expression"
+									},
+									"pTargetPath": {
+										"value": "@item().TargetPath",
+										"type": "Expression"
+									},
+									"pLastWatermarkValue": {
+										"value": "@item().LastWatermarkValue",
+										"type": "Expression"
+									},
+									"pRunId": {
+										"value": "@pipeline().RunId",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"pEnv": {
+				"type": "String",
+				"defaultValue": "dev"
+			}
+		},
+		"variables": {
+			"vRunId": {
+				"type": "String"
+			}
+		},
+		"annotations": []
+	}
+}
