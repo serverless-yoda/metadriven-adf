@@ -1,0 +1,95 @@
+{
+	"name": "PL_GoldMart",
+	"properties": {
+		"activities": [
+			{
+				"name": "DF_DimCustomer",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [],
+				"policy": {
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine",
+					"parameters": {
+						"pSilverPath": "silver/saleslt/customer"
+					}
+				}
+			},
+			{
+				"name": "DF_DimProduct",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [],
+				"policy": {
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine",
+					"parameters": {
+						"pSilverPath": "silver/saleslt/product"
+					}
+				}
+			},
+			{
+				"name": "DF_FactSales",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "DF_DimCustomer",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "DF_DimProduct",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine",
+					"parameters": {
+						"pCustomerPath": "silver/saleslt/customer",
+						"pProductPath": "silver/saleslt/product",
+						"pOrderPath": "silver/saleslt/salesorderheader",
+						"pOrderDetailPath": "silver/saleslt/salesorderdetail"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"pRunId": {
+				"type": "String"
+			}
+		},
+		"annotations": []
+	}
+}
