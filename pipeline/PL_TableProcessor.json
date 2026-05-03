@@ -193,7 +193,14 @@
 											"referenceName": "PL_SilverMerge",
 											"type": "PipelineReference"
 										},
-										"waitOnCompletion": true
+										"waitOnCompletion": true,
+										"parameters": {
+											"pTableName": "@pipeline().parameters.pTableName",
+											"pBronzePath": "@pipeline().parameters.pTargetPath",
+											"pSilverPath": "@pipeline().parameters.pSilverPath",
+											"pPrimaryKey": "@pipeline().parameters.pPrimaryKey",
+											"pRunId": "@pipeline().parameters.pRunId"
+										}
 									}
 								}
 							]
