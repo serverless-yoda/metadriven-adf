@@ -94,8 +94,8 @@
 									"referenceName": "DS_SQL_Source_v1",
 									"type": "DatasetReference",
 									"parameters": {
-										"Schema": "item().SourceSchema",
-										"Table": "item().TableName"
+										"Schema": "@item().SourceSchema",
+										"Table": "@item().TableName"
 									}
 								}
 							],
