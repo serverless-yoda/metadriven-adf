@@ -71,7 +71,7 @@
 									]
 								},
 								{
-									"name": "Merge_BronzeToSilver",
+									"name": "Execute PL_SilverMerge_FULL",
 									"type": "ExecutePipeline",
 									"dependsOn": [
 										{
@@ -145,6 +145,9 @@
 											"storeSettings": {
 												"type": "AzureBlobFSWriteSettings",
 												"copyBehavior": "FlattenHierarchy"
+											},
+											"formatSettings": {
+												"type": "ParquetWriteSettings"
 											}
 										},
 										"enableStaging": false
@@ -169,6 +172,29 @@
 											}
 										}
 									]
+								},
+								{
+									"name": "Execute PL_SilverMerge_INCR",
+									"type": "ExecutePipeline",
+									"dependsOn": [
+										{
+											"activity": "Copy_Incremental_Bronze",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "PL_SilverMerge",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true
+									}
 								}
 							]
 						},
@@ -226,6 +252,29 @@
 											}
 										}
 									]
+								},
+								{
+									"name": "Execute PL_SilverMerge_MERGE",
+									"type": "ExecutePipeline",
+									"dependsOn": [
+										{
+											"activity": "Copy_Merge_Staging",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "PL_SilverMerge",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true
+									}
 								}
 							]
 						}
