@@ -8,19 +8,11 @@
 		"typeProperties": {
 			"sources": [
 				{
-					"linkedService": {
-						"referenceName": "LS_ADLS_CSV",
-						"type": "LinkedServiceReference"
-					},
 					"name": "sourcesilver"
 				}
 			],
 			"sinks": [
 				{
-					"linkedService": {
-						"referenceName": "LS_ADLS_CSV",
-						"type": "LinkedServiceReference"
-					},
 					"name": "sinkDimension"
 				}
 			],
@@ -50,10 +42,8 @@
 				"     ),",
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
-				"     ignoreNoFilesFound: false,",
-				"     format: 'parquet',",
-				"     fileSystem: 'silver',",
-				"     wildcardPaths:['productdatabase']) ~> sourcesilver",
+				"     wildcardPaths:['productdatabase'],",
+				"     fileSystem: 'silver') ~> sourcesilver",
 				"sourcesilver aggregate(groupBy(Product),",
 				"     PriceEach = last(PriceEach)) ~> createDimension",
 				"createDimension keyGenerate(output(ProductId as long),",
@@ -61,17 +51,16 @@
 				"     stepValue: 1L) ~> surrogateKeyId",
 				"surrogateKeyId sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
+				"     partitionFileNames:['product.parquet'],",
+				"     truncate: true,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     partitionBy('hash', 1),",
 				"     format: 'parquet',",
 				"     fileSystem: 'gold',",
 				"     folderPath: 'productdatabase/product',",
-				"     truncate: true,",
-				"     partitionFileNames:['product.parquet'],",
-				"     umask: 0022,",
 				"     preCommands: [],",
-				"     postCommands: [],",
-				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true,",
-				"     partitionBy('hash', 1)) ~> sinkDimension"
+				"     postCommands: []) ~> sinkDimension"
 			]
 		}
 	}

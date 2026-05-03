@@ -8,19 +8,11 @@
 		"typeProperties": {
 			"sources": [
 				{
-					"linkedService": {
-						"referenceName": "LS_ADLS_CSV",
-						"type": "LinkedServiceReference"
-					},
 					"name": "sourcebronze"
 				}
 			],
 			"sinks": [
 				{
-					"linkedService": {
-						"referenceName": "LS_ADLS_CSV",
-						"type": "LinkedServiceReference"
-					},
 					"name": "sinkToSilver"
 				}
 			],
@@ -55,10 +47,8 @@
 				"     ),",
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
-				"     ignoreNoFilesFound: false,",
-				"     format: 'parquet',",
-				"     fileSystem: 'bronze',",
-				"     wildcardPaths:['productdatabase']) ~> sourcebronze",
+				"     wildcardPaths:['productdatabase'],",
+				"     fileSystem: 'bronze') ~> sourcebronze",
 				"removeDuplicates cast(output(",
 				"          OrderID as integer,",
 				"          QuantityOrdered as integer,",
@@ -84,8 +74,7 @@
 				"                    )\r",
 				"                    ,2\r",
 				"                )\r",
-				"            )\r",
-				",",
+				"            ),",
 				"          PurchaseState = trim(\r",
 				"at(\r",
 				"    split(\r",
@@ -133,14 +122,13 @@
 				"     skipDuplicateMapOutputs: true) ~> selectFinalColumns",
 				"selectFinalColumns sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
 				"     format: 'parquet',",
 				"     fileSystem: 'silver',",
 				"     folderPath: 'productdatabase',",
-				"     umask: 0022,",
 				"     preCommands: [],",
-				"     postCommands: [],",
-				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> sinkToSilver"
+				"     postCommands: []) ~> sinkToSilver"
 			]
 		}
 	}
