@@ -52,7 +52,14 @@
 			{
 				"name": "SP_UpdateWatermark",
 				"type": "SqlServerStoredProcedure",
-				"dependsOn": [],
+				"dependsOn": [
+					{
+						"activity": "Switch_LoadPattern",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
 				"policy": {
 					"retry": 0,
 					"retryIntervalInSeconds": 30,
