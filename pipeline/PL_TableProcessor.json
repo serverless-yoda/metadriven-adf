@@ -69,6 +69,29 @@
 											}
 										}
 									]
+								},
+								{
+									"name": "Execute Pipeline1",
+									"type": "ExecutePipeline",
+									"dependsOn": [
+										{
+											"activity": "Copy_FullLoad_Bronze",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "PL_SilverMerge",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true
+									}
 								}
 							]
 						},
