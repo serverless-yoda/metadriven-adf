@@ -15,9 +15,9 @@
 					"name": "bronzesource"
 				},
 				{
-					"linkedService": {
-						"referenceName": "LS_ADLS_Dynamic_v1",
-						"type": "LinkedServiceReference"
+					"dataset": {
+						"referenceName": "DS_ADLS_Parquet_v1",
+						"type": "DatasetReference"
 					},
 					"name": "silversource"
 				}
@@ -25,7 +25,7 @@
 			"sinks": [],
 			"transformations": [
 				{
-					"name": "joinsilver"
+					"name": "exists1"
 				}
 			],
 			"scriptLines": [
@@ -37,15 +37,12 @@
 				"     wildcardPaths:['concat($TargetPath, \\'/*.parquet\\')']) ~> bronzesource",
 				"source(allowSchemaDrift: true,",
 				"     validateSchema: false,",
-				"     ignoreNoFilesFound: false,",
+				"     ignoreNoFilesFound: true,",
 				"     format: 'parquet',",
-				"     fileSystem: 'silver',",
-				"     wildcardPaths:[(concat($SilverPath, '/*.parquet'))]) ~> silversource",
-				"bronzesource, silversource join(ERROR_FUNCTION('') == ERROR_FUNCTION(''),",
-				"     joinType:'left',",
-				"     matchType:'exact',",
-				"     ignoreSpaces: false,",
-				"     broadcast: 'auto')~> joinsilver"
+				"     wildcardPaths:['*.']) ~> silversource",
+				"bronzesource, silversource exists(iif(isNull($LastWatermarkValue), 'recreate', 'none'),",
+				"     negate:true,",
+				"     broadcast: 'auto')~> exists1"
 			]
 		}
 	}
