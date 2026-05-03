@@ -71,7 +71,7 @@
 									]
 								},
 								{
-									"name": "Execute Pipeline1",
+									"name": "Merge_BronzeToSilver",
 									"type": "ExecutePipeline",
 									"dependsOn": [
 										{
@@ -90,7 +90,29 @@
 											"referenceName": "PL_SilverMerge",
 											"type": "PipelineReference"
 										},
-										"waitOnCompletion": true
+										"waitOnCompletion": true,
+										"parameters": {
+											"pTableName": {
+												"value": "@pipeline().parameters.pTableName",
+												"type": "Expression"
+											},
+											"pBronzePath": {
+												"value": "@pipeline().parameters.pTargetPath",
+												"type": "Expression"
+											},
+											"pSilverPath": {
+												"value": "@pipeline().parameters.pSilverPath",
+												"type": "Expression"
+											},
+											"pPrimaryKey": {
+												"value": "@pipeline().parameters.pPrimaryKey",
+												"type": "Expression"
+											},
+											"pRunId": {
+												"value": "@pipeline().parameters.pRunId",
+												"type": "Expression"
+											}
+										}
 									}
 								}
 							]
